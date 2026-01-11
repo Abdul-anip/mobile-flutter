@@ -15,7 +15,7 @@ class _GridBajuPriaState extends State<GridBajuPria> {
   List<dynamic> bajuPriaProduct = [];
   Future<void> getAllBajuPria() async {
     String urlBajuPria =
-        "http://10.70.247.208/server_shop_hanif/gridbajupria.php";
+        "https://servershophanif-production-840f.up.railway.app/gridbajupria.php";
     try {
       var response = await http.get(Uri.parse(urlBajuPria));
       setState(() {

@@ -15,7 +15,7 @@ class _GridBajuWanitaState extends State<GridBajuWanita> {
   List<dynamic> bajuWanitaProduct = [];
   Future<void> getAllBajuWanita() async {
     String urlBajuWanita =
-        "http://10.70.247.208/server_shop_hanif/gridbajuwanita.php";
+        "https://servershophanif-production-840f.up.railway.app/gridbajuwanita.php";
     try {
       var response = await http.get(Uri.parse(urlBajuWanita));
       setState(() {

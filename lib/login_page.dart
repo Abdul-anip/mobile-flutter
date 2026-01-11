@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = true;
     });
 
-    String url = "http://10.70.247.208/server_shop_hanif/login.php";
+    String url = "https://servershophanif-production-840f.up.railway.app/login.php";
     
     try {
       var response = await http.post(

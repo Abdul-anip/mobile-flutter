@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> getAllProductItem() async {
     String urlProductItem =
-        "http://10.70.247.208/server_shop_hanif/allproduct.php";
+        "https://servershophanif-production-840f.up.railway.app/allproduct.php";
     try {
       var response = await http.get(Uri.parse(urlProductItem));
       setState(() {
