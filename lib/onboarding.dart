@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hanifstore/homepage.dart';
+import 'package:hanifstore/login_page.dart';
 
 class OnBoardingPage extends StatefulWidget {
   const OnBoardingPage({super.key});
@@ -89,7 +90,7 @@ class _OnBoardingState extends State<OnBoardingPage> {
                         onPressed: () {
                           Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                  builder: (context) => const HomePage()));
+                                  builder: (context) => const LoginPage()));
                         },
                         child: const Text(
                           "Get Started",
@@ -123,7 +124,7 @@ class _OnBoardingState extends State<OnBoardingPage> {
                   onPressed: () {
                     if (indexPage == onBoardData.length - 1) {
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => const HomePage()));
+                          builder: (context) => const LoginPage()));
                     } else {
                       page.nextPage(
                           duration: const Duration(microseconds: 300),
