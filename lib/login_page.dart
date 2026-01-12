@@ -12,18 +12,14 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // ✅ Controllers
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   
-  // ✅ Form key untuk validasi
   final _formKey = GlobalKey<FormState>();
   
-  // ✅ State variables
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  // ✅ Dispose controllers
   @override
   void dispose() {
     emailController.dispose();
@@ -31,8 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // ✅ Validasi email
-  String? validateEmail(String? value) {
+    String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
     }
@@ -43,17 +38,14 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  // ✅ Validasi password
-  String? validatePassword(String? value) {
+    String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Password is required';
     }
     return null;
   }
 
-  // ✅ Function login TANPA SharedPreferences
   Future<void> login() async {
-    // Validasi form
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -78,7 +70,6 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (data['status'] == 'success') {
-        // ✅ Tampilkan pesan sukses
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['message'] ?? 'Login successful'),
@@ -87,13 +78,11 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
         
-        // ✅ Navigate ke HomePage
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } else {
-        // ✅ Tampilkan pesan error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['message'] ?? 'Login failed'),
@@ -103,7 +92,6 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
-      // ✅ Handle network error
       if (!mounted) return;
       
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,7 +102,6 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } finally {
-      // ✅ Stop loading
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -136,17 +123,11 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ✅ Logo atau icon
-                  Icon(
-                    Icons.shopping_bag,
-                    size: 80,
-                    color: Colors.green.shade700,
-                  ),
+                  
                   const SizedBox(height: 20),
                   
-                  // ✅ Title
                   const Text(
-                    "Welcome Back!",
+                    "Welcome",
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -162,7 +143,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 40),
 
-                  // ✅ Email Field dengan validasi
                   TextFormField(
                     controller: emailController,
                     enabled: !_isLoading,
@@ -177,7 +157,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // ✅ Password Field dengan toggle visibility
                   TextFormField(
                     controller: passwordController,
                     enabled: !_isLoading,
@@ -202,7 +181,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 30),
 
-                  // ✅ Login Button dengan loading indicator
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -235,7 +213,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // ✅ Register link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
