@@ -10,21 +10,17 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // ✅ Controllers
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
   
-  // ✅ Form key untuk validasi
   final _formKey = GlobalKey<FormState>();
   
-  // ✅ State variables
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  // ✅ Dispose controllers untuk menghindari memory leak
   @override
   void dispose() {
     nameController.dispose();
@@ -34,7 +30,6 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // ✅ Validasi nama
   String? validateName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Name is required';
@@ -45,7 +40,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // ✅ Validasi email
   String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
@@ -57,7 +51,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // ✅ Validasi password
   String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Password is required';
@@ -68,7 +61,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // ✅ Validasi confirm password
   String? validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please confirm your password';
@@ -79,9 +71,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // ✅ Function register dengan error handling yang benar
   Future<void> register() async {
-    // Validasi form
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -101,14 +91,13 @@ class _RegisterPageState extends State<RegisterPage> {
           "password": passwordController.text,
           "confirm_password": confirmPasswordController.text,
         },
-      ).timeout(const Duration(seconds: 15)); // ✅ Tambah timeout
+      ).timeout(const Duration(seconds: 15));
 
       var data = jsonDecode(response.body);
       
-      if (!mounted) return; // ✅ Cek apakah widget masih mounted
+      if (!mounted) return; 
 
       if (data['status'] == 'success') {
-        // ✅ Tampilkan pesan sukses
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['message'] ?? 'Registration successful'),
@@ -117,10 +106,8 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         );
         
-        // ✅ Kembali ke login page
         Navigator.pop(context);
       } else {
-        // ✅ Tampilkan pesan error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['message'] ?? 'Registration failed'),
@@ -130,7 +117,6 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } catch (e) {
-      // ✅ Handle network error
       if (!mounted) return;
       
       ScaffoldMessenger.of(context).showSnackBar(
@@ -167,7 +153,6 @@ class _RegisterPageState extends State<RegisterPage> {
               children: [
                 const SizedBox(height: 20),
                 
-                // ✅ Title
                 const Text(
                   "Register",
                   style: TextStyle(
@@ -185,7 +170,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ Name Field dengan validasi
                 TextFormField(
                   controller: nameController,
                   enabled: !_isLoading,
@@ -199,7 +183,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 15),
 
-                // ✅ Email Field dengan validasi
                 TextFormField(
                   controller: emailController,
                   enabled: !_isLoading,
@@ -214,7 +197,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 15),
 
-                // ✅ Password Field dengan toggle visibility
                 TextFormField(
                   controller: passwordController,
                   enabled: !_isLoading,
@@ -239,7 +221,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 15),
 
-                // ✅ Confirm Password Field dengan toggle visibility
                 TextFormField(
                   controller: confirmPasswordController,
                   enabled: !_isLoading,
@@ -264,7 +245,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 10),
 
-                // ✅ Password hint
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -278,7 +258,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ Register Button dengan loading indicator
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -311,7 +290,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // ✅ Login link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
