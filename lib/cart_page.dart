@@ -27,7 +27,7 @@ class _CartPageState extends State<CartPage> {
   Future<void> loadCart() async {
     setState(() => isLoading = true);
     
-    String url = "http://10.70.247.208/server_shop_hanif/get_cart.php?user_id=${widget.userId}";
+    String url = "https://servershophanif-production-840f.up.railway.app/get_cart.php?user_id=${widget.userId}";
     
     try {
       var response = await http.get(Uri.parse(url));
@@ -51,7 +51,7 @@ class _CartPageState extends State<CartPage> {
 
   // Update quantity item
   Future<void> updateQuantity(int cartId, int newQuantity) async {
-    String url = "http://10.70.247.208/server_shop_hanif/update_cart.php";
+    String url = "https://servershophanif-production-840f.up.railway.app/update_cart.php";
     
     try {
       var response = await http.post(
@@ -74,7 +74,7 @@ class _CartPageState extends State<CartPage> {
 
   // Hapus item dari cart
   Future<void> removeItem(int cartId) async {
-    String url = "http://10.70.247.208/server_shop_hanif/remove_from_cart.php";
+    String url = "https://servershophanif-production-840f.up.railway.app/remove_from_cart.php";
     
     try {
       var response = await http.post(

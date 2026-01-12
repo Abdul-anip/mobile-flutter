@@ -1,14 +1,14 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hanifstore/cart_page.dart';
 import 'package:hanifstore/gridbajupria.dart';
 import 'package:hanifstore/gridbajuwanita.dart';
 import 'package:hanifstore/gridelectronic.dart';
 import 'package:hanifstore/gridsepatupria.dart';
 import 'package:hanifstore/gridsepatuwanita.dart';
-import 'dart:convert';
-
 import 'package:hanifstore/onboarding.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,9 +19,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
-int cartCount = 0;
-int currentUserId = 1;
+  int cartCount = 0;
+  // Initialize with null or 0, but we will fetch from prefs
+  int? currentUserId;
 
   List<dynamic> allProductList = [];
   TextEditingController searchProduct = TextEditingController();
@@ -43,20 +43,25 @@ int currentUserId = 1;
   }
 
   Future<void> getCartCount() async {
-  String url = "http://10.70.247.208/server_shop_hanif/get_cart.php?user_id=$currentUserId";
-  try {
-    var response = await http.get(Uri.parse(url));
-    var data = jsonDecode(response.body);
-    if (data['status'] == 'success') {
-      setState(() {
-        cartCount = data['data']['item_count'] ?? 0;
-      });
-    }
-  } catch (e) {
-    print('Error getting cart count: $e');
-  }
-}
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    currentUserId = prefs.getInt('user_id');
 
+    if (currentUserId == null) return;
+
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/get_cart.php?user_id=$currentUserId";
+    try {
+      var response = await http.get(Uri.parse(url));
+      var data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        setState(() {
+          cartCount = data['data']['item_count'] ?? 0;
+        });
+      }
+    } catch (e) {
+      print('Error getting cart count: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -73,8 +78,11 @@ int currentUserId = 1;
         indexBanner = 0;
       }
 
-      bannerController.animateToPage(indexBanner,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      if (bannerController.hasClients) {
+        bannerController.animateToPage(indexBanner,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
+      }
     });
   }
 
@@ -82,9 +90,11 @@ int currentUserId = 1;
   void initState() {
     super.initState();
     bannerController.addListener(() {
-      setState(() {
-        indexBanner = bannerController.page?.round() ?? 0;
-      });
+      if (mounted) {
+        setState(() {
+          indexBanner = bannerController.page?.round() ?? 0;
+        });
+      }
     });
 
     bannerOnBoarding();
@@ -103,8 +113,8 @@ int currentUserId = 1;
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const OnBoardingPage()));
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) => const OnBoardingPage()));
           },
           icon: const Icon(
             Icons.arrow_back_ios,
@@ -120,61 +130,67 @@ int currentUserId = 1;
         centerTitle: true,
         backgroundColor: Colors.green,
         actions: [
-  IconButton(
-    onPressed: () {},
-    icon: const Icon(
-      Icons.info_outline,
-      color: Colors.white,
-      size: 22,
-    )
-  ),
-  // ✅ Shopping Cart dengan Badge
-  Stack(
-    children: [
-      IconButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CartPage(userId: currentUserId),
-            ),
-          ).then((_) => getCartCount()); // Refresh count setelah kembali
-        },
-        icon: const Icon(
-          Icons.shopping_cart_outlined,
-          color: Colors.white,
-          size: 22,
-        ),
-      ),
-      if (cartCount > 0)
-        Positioned(
-          right: 8,
-          top: 8,
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.circle,
-            ),
-            constraints: const BoxConstraints(
-              minWidth: 18,
-              minHeight: 18,
-            ),
-            child: Text(
-              cartCount > 99 ? '99+' : cartCount.toString(),
-              style: const TextStyle(
+          IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.info_outline,
                 color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+                size: 22,
+              )),
+          Stack(
+            children: [
+              IconButton(
+                onPressed: () async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  int? userId = prefs.getInt('user_id');
+                  if (userId != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CartPage(userId: userId),
+                      ),
+                    ).then((_) => getCartCount());
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please login first')),
+                    );
+                  }
+                },
+                icon: const Icon(
+                  Icons.shopping_cart_outlined,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
+              if (cartCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Text(
+                      cartCount > 99 ? '99+' : cartCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ),
-    ],
-  ),
-],
-
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -423,7 +439,15 @@ int currentUserId = 1;
                         itemBuilder: (BuildContext context, int index) {
                           final itemProduct = allProductList[index];
                           return GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailGenericProduct(item: itemProduct),
+                                ),
+                              ).then((_) => getCartCount());
+                            },
                             child: Card(
                               elevation: 5,
                               child: Column(
@@ -431,9 +455,16 @@ int currentUserId = 1;
                                       MainAxisAlignment.spaceAround,
                                   children: <Widget>[
                                     Image.network(
-                                      itemProduct['images'],
+                                      itemProduct['images'] ??
+                                          itemProduct['image'],
                                       height: 125,
                                       width: 125,
+                                      errorBuilder: (context, error,
+                                              stackTrace) =>
+                                          const SizedBox(
+                                              height: 125,
+                                              width: 125,
+                                              child: Icon(Icons.broken_image)),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.all(5),
@@ -456,6 +487,242 @@ int currentUserId = 1;
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class DetailGenericProduct extends StatefulWidget {
+  final dynamic item;
+  const DetailGenericProduct({super.key, required this.item});
+
+  @override
+  State<DetailGenericProduct> createState() => _DetailGenericProductState();
+}
+
+class _DetailGenericProductState extends State<DetailGenericProduct> {
+  bool _isAdding = false;
+
+  Future<void> addToCart() async {
+    setState(() => _isAdding = true);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt('user_id');
+
+    if (userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please login first'), backgroundColor: Colors.red),
+      );
+      setState(() => _isAdding = false);
+      return;
+    }
+
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/add_to_cart.php";
+
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        body: {
+          'user_id': userId.toString(),
+          'product_id': widget.item['id'].toString(),
+          'quantity': '1',
+        },
+      );
+
+      var data = jsonDecode(response.body);
+
+      if (!mounted) return;
+
+      if (data['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? 'Added to cart'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'VIEW CART',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CartPage(userId: userId),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? 'Failed to add to cart'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isAdding = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            size: 25,
+            color: Colors.black,
+          ),
+        ),
+        title: Text(
+          widget.item["name"],
+          style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: () async {
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              int? userId = prefs.getInt('user_id');
+              if (userId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CartPage(userId: userId)),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please login first')),
+                );
+              }
+            },
+            icon: const Icon(
+              Icons.shopping_cart_outlined,
+              color: Colors.black, // Color black because app bar is white
+              size: 22,
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Image.network(
+              widget.item['images'] ?? widget.item['image'],
+              width: 400,
+              height: 350,
+              errorBuilder: (context, error, stackTrace) => const SizedBox(
+                  height: 350,
+                  width: 400,
+                  child: Icon(Icons.broken_image, size: 100)),
+            ),
+          ),
+          const Padding(
+              padding: EdgeInsets.fromLTRB(30, 20, 0, 0),
+              child: Text(
+                "Product Decription",
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              )),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(30, 5, 0, 30),
+            child: Text(
+              widget.item['description'],
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(30, 0, 30, 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  "harga : Rp." + widget.item['price'].toString(),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: <Widget>[
+                    const Icon(
+                      Icons.favorite,
+                      size: 13,
+                      color: Colors.red,
+                    ),
+                    Text(
+                      widget.item['promo'].toString(),
+                      style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(100, 40, 0, 0),
+            child: SizedBox(
+              width: 200,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    )),
+                onPressed: _isAdding ? null : addToCart,
+                child: _isAdding
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Add to Cart",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

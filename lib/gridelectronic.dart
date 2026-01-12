@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hanifstore/homepage.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hanifstore/cart_page.dart';
 
 class GridElectronics extends StatefulWidget {
   const GridElectronics({super.key});
@@ -63,12 +65,27 @@ class _GridElectronicsState extends State<GridElectronics> {
                   size: 22,
                 )),
             IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.shopping_cart_outlined,
-                  color: Colors.white,
-                  size: 22,
-                )),
+              onPressed: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                int? userId = prefs.getInt('user_id');
+                if (userId != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CartPage(userId: userId)),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please login first')),
+                  );
+                }
+              },
+              icon: const Icon(
+                Icons.shopping_cart_outlined,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
           ],
         ),
         body: Center(
@@ -106,8 +123,7 @@ class _GridElectronicsState extends State<GridElectronics> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
                             Text(
-                              "harga : Rp."+
-                              item['price'].toString(),
+                              "harga : Rp." + item['price'].toString(),
                               style: const TextStyle(
                                   fontSize: 10,
                                   color: Colors.green,
@@ -142,9 +158,92 @@ class _GridElectronicsState extends State<GridElectronics> {
   }
 }
 
-class DetilElectronic extends StatelessWidget {
+class DetilElectronic extends StatefulWidget {
   final dynamic item;
   const DetilElectronic({super.key, required this.item});
+
+  @override
+  State<DetilElectronic> createState() => _DetilElectronicState();
+}
+
+class _DetilElectronicState extends State<DetilElectronic> {
+  bool _isAdding = false;
+
+  Future<void> addToCart() async {
+    setState(() => _isAdding = true);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt('user_id');
+
+    if (userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please login first'), backgroundColor: Colors.red),
+      );
+      setState(() => _isAdding = false);
+      return;
+    }
+
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/add_to_cart.php";
+
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        body: {
+          'user_id': userId.toString(),
+          'product_id': widget.item['id'].toString(),
+          'quantity': '1',
+        },
+      );
+
+      var data = jsonDecode(response.body);
+
+      if (!mounted) return;
+
+      if (data['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? 'Added to cart'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'VIEW CART',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CartPage(userId: userId),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? 'Failed to add to cart'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isAdding = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +261,7 @@ class DetilElectronic extends StatelessWidget {
           ),
         ),
         title: Text(
-          item["name"],
+          widget.item["name"],
           style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -186,7 +285,7 @@ class DetilElectronic extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(left: 15),
-            child: Image.network(item['image'], width: 400, height: 350),
+            child: Image.network(widget.item['image'], width: 400, height: 350),
           ),
           const Padding(
               padding: EdgeInsets.fromLTRB(30, 20, 0, 0),
@@ -200,7 +299,7 @@ class DetilElectronic extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(30, 5, 0, 30),
             child: Text(
-              item['description'],
+              widget.item['description'],
               style: const TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ),
@@ -210,8 +309,7 @@ class DetilElectronic extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  "harga : Rp."+
-                  item['price'].toString(),
+                  "harga : Rp." + widget.item['price'].toString(),
                   style: const TextStyle(
                       fontSize: 13,
                       color: Colors.blue,
@@ -225,7 +323,7 @@ class DetilElectronic extends StatelessWidget {
                       color: Colors.red,
                     ),
                     Text(
-                      item['promo'].toString(),
+                      widget.item['promo'].toString(),
                       style: const TextStyle(
                           fontSize: 13,
                           color: Colors.green,
@@ -243,18 +341,25 @@ class DetilElectronic extends StatelessWidget {
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                )),
-                onPressed: () {},
-                child: const Text(
-                  "Add to Cart",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
+                      borderRadius: BorderRadius.circular(30),
+                    )),
+                onPressed: _isAdding ? null : addToCart,
+                child: _isAdding
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : const Text(
+                        "Add to Cart",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ),
