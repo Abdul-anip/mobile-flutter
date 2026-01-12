@@ -19,6 +19,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+int cartCount = 0;
+int currentUserId = 1;
+
   List<dynamic> allProductList = [];
   TextEditingController searchProduct = TextEditingController();
   PageController bannerController = PageController();
@@ -37,6 +41,22 @@ class _HomePageState extends State<HomePage> {
       print(exc);
     }
   }
+
+  Future<void> getCartCount() async {
+  String url = "http://10.70.247.208/server_shop_hanif/get_cart.php?user_id=$currentUserId";
+  try {
+    var response = await http.get(Uri.parse(url));
+    var data = jsonDecode(response.body);
+    if (data['status'] == 'success') {
+      setState(() {
+        cartCount = data['data']['item_count'] ?? 0;
+      });
+    }
+  } catch (e) {
+    print('Error getting cart count: $e');
+  }
+}
+
 
   @override
   void dispose() {
@@ -69,6 +89,7 @@ class _HomePageState extends State<HomePage> {
 
     bannerOnBoarding();
     getAllProductItem();
+    getCartCount();
   }
 
   @override
@@ -99,21 +120,61 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         backgroundColor: Colors.green,
         actions: [
-          IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.info_outline,
+  IconButton(
+    onPressed: () {},
+    icon: const Icon(
+      Icons.info_outline,
+      color: Colors.white,
+      size: 22,
+    )
+  ),
+  // ✅ Shopping Cart dengan Badge
+  Stack(
+    children: [
+      IconButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CartPage(userId: currentUserId),
+            ),
+          ).then((_) => getCartCount()); // Refresh count setelah kembali
+        },
+        icon: const Icon(
+          Icons.shopping_cart_outlined,
+          color: Colors.white,
+          size: 22,
+        ),
+      ),
+      if (cartCount > 0)
+        Positioned(
+          right: 8,
+          top: 8,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: const BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+            ),
+            constraints: const BoxConstraints(
+              minWidth: 18,
+              minHeight: 18,
+            ),
+            child: Text(
+              cartCount > 99 ? '99+' : cartCount.toString(),
+              style: const TextStyle(
                 color: Colors.white,
-                size: 22,
-              )),
-          IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.shopping_cart_outlined,
-                color: Colors.white,
-                size: 22,
-              )),
-        ],
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+    ],
+  ),
+],
+
       ),
       body: SingleChildScrollView(
         child: Column(

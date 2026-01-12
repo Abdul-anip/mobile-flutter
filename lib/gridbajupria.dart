@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hanifstore/homepage.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hanifstore/cart_page.dart';
+ 
 
 class GridBajuPria extends StatefulWidget {
   const GridBajuPria({super.key});
@@ -12,6 +15,10 @@ class GridBajuPria extends StatefulWidget {
 }
 
 class _GridBajuPriaState extends State<GridBajuPria> {
+
+bool isAddingToCart = false;
+int currentUserId = 1;
+
   List<dynamic> bajuPriaProduct = [];
   Future<void> getAllBajuPria() async {
     String urlBajuPria =
@@ -141,9 +148,79 @@ class _GridBajuPriaState extends State<GridBajuPria> {
   }
 }
 
-class DetilBajuPria extends StatelessWidget {
+class DetilBajuPria extends StatefulWidget {
   final dynamic item;
   const DetilBajuPria({super.key, required this.item});
+
+  @override
+  State<DetilBajuPria> createState() => _DetilBajuPriaState();
+}
+
+class _DetilBajuPriaState extends State<DetilBajuPria> {
+  bool _isAdding = false;
+
+  Future<void> addToCart() async {
+  setState(() => _isAdding = true);
+  
+  String url = "http://192.168.1.10/server_shop_hanif/add_to_cart.php";
+  
+  try {
+    var response = await http.post(
+      Uri.parse(url),
+      body: {
+        'user_id':  widget.item['user_id'].toString(),
+        'product_id':   widget.item['id'].toString(),
+        'quantity': '1',
+      },
+    );
+    
+    var data = jsonDecode(response.body);
+    
+    if (!mounted) return;
+    
+    if (data['status'] == 'success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? 'Added to cart'),
+          backgroundColor: Colors.green,
+          action: SnackBarAction(
+            label: 'VIEW CART',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CartPage(userId: widget.item['user_id'].toString()),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? 'Failed to add to cart'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: ${e.toString()}'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() => _isAdding = false);
+    }
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +238,7 @@ class DetilBajuPria extends StatelessWidget {
           ),
         ),
         title: Text(
-          item["name"],
+          widget.item["name"],
           style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -185,7 +262,7 @@ class DetilBajuPria extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(left: 15),
-            child: Image.network(item['image'], width: 400, height: 350),
+            child: Image.network(widget.item['image'], width: 400, height: 350),
           ),
           const Padding(
               padding: EdgeInsets.fromLTRB(30, 20, 0, 0),
@@ -199,7 +276,7 @@ class DetilBajuPria extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(30, 5, 0, 30),
             child: Text(
-              item['description'],
+              widget.item['description'],
               style: const TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ),
@@ -209,7 +286,7 @@ class DetilBajuPria extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  "harga : Rp." + item['price'].toString(),
+                  "harga : Rp." + widget.item['price'].toString(),
                   style: const TextStyle(
                       fontSize: 13,
                       color: Colors.blue,
@@ -223,7 +300,7 @@ class DetilBajuPria extends StatelessWidget {
                       color: Colors.red,
                     ),
                     Text(
-                      item['promo'].toString(),
+                      widget.item['promo'].toString(),
                       style: const TextStyle(
                           fontSize: 13,
                           color: Colors.green,
@@ -235,27 +312,39 @@ class DetilBajuPria extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(100, 40, 0, 0),
-            child: SizedBox(
-              width: 200,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                )),
-                onPressed: () {},
-                child: const Text(
-                  "Add to Cart",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
+  padding: const EdgeInsets.fromLTRB(100, 40, 0, 0),
+  child: SizedBox(
+    width: 200,
+    height: 50,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+      ),
+      onPressed: _isAdding ? null : addToCart, // ✅ Panggil function
+      child: _isAdding
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : const Text(
+              "Add to Cart",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-          ),
+    ),
+  ),
+),
+
         ],
       ),
     );

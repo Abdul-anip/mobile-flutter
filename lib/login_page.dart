@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:hanifstore/homepage.dart';
 import 'package:hanifstore/register_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,9 +15,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  
+
   final _formKey = GlobalKey<FormState>();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -27,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-    String? validateEmail(String? value) {
+  String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
     }
@@ -38,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-    String? validatePassword(String? value) {
+  String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Password is required';
     }
@@ -54,8 +55,9 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = true;
     });
 
-    String url = "https://servershophanif-production-840f.up.railway.app/login.php";
-    
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/login.php";
+
     try {
       var response = await http.post(
         Uri.parse(url),
@@ -66,10 +68,19 @@ class _LoginPageState extends State<LoginPage> {
       ).timeout(const Duration(seconds: 15));
 
       var data = jsonDecode(response.body);
-      
+
       if (!mounted) return;
 
       if (data['status'] == 'success') {
+        // Save user session
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('user_id', data['data']['user_id']);
+        await prefs.setString('user_name', data['data']['name']);
+        await prefs.setString('user_email', data['data']['email']);
+        await prefs.setBool('is_logged_in', true);
+
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['message'] ?? 'Login successful'),
@@ -77,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
             duration: const Duration(seconds: 2),
           ),
         );
-        
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -93,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Network error: ${e.toString()}'),
@@ -123,9 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  
                   const SizedBox(height: 20),
-                  
                   const Text(
                     "Welcome",
                     style: TextStyle(
@@ -142,7 +151,6 @@ class _LoginPageState extends State<LoginPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
-
                   TextFormField(
                     controller: emailController,
                     enabled: !_isLoading,
@@ -156,7 +164,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   TextFormField(
                     controller: passwordController,
                     enabled: !_isLoading,
@@ -169,7 +176,9 @@ class _LoginPageState extends State<LoginPage> {
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                          _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
@@ -180,7 +189,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 30),
-
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -212,20 +220,21 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text("Don't have an account? "),
                       TextButton(
-                        onPressed: _isLoading ? null : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegisterPage(),
-                            ),
-                          );
-                        },
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const RegisterPage(),
+                                  ),
+                                );
+                              },
                         child: const Text(
                           "Register now",
                           style: TextStyle(
