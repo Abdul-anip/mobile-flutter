@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'payment_page.dart';
 
 class CartPage extends StatefulWidget {
   final int userId;
-  
+
   const CartPage({super.key, required this.userId});
 
   @override
@@ -26,13 +27,14 @@ class _CartPageState extends State<CartPage> {
   // Load cart dari server
   Future<void> loadCart() async {
     setState(() => isLoading = true);
-    
-    String url = "https://servershophanif-production-840f.up.railway.app/get_cart.php?user_id=${widget.userId}";
-    
+
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/get_cart.php?user_id=${widget.userId}";
+
     try {
       var response = await http.get(Uri.parse(url));
       var data = jsonDecode(response.body);
-      
+
       if (data['status'] == 'success') {
         setState(() {
           cartItems = data['data']['items'];
@@ -51,8 +53,9 @@ class _CartPageState extends State<CartPage> {
 
   // Update quantity item
   Future<void> updateQuantity(int cartId, int newQuantity) async {
-    String url = "https://servershophanif-production-840f.up.railway.app/update_cart.php";
-    
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/update_cart.php";
+
     try {
       var response = await http.post(
         Uri.parse(url),
@@ -61,9 +64,9 @@ class _CartPageState extends State<CartPage> {
           'quantity': newQuantity.toString(),
         },
       );
-      
+
       var data = jsonDecode(response.body);
-      
+
       if (data['status'] == 'success') {
         loadCart(); // Reload cart
       }
@@ -74,16 +77,17 @@ class _CartPageState extends State<CartPage> {
 
   // Hapus item dari cart
   Future<void> removeItem(int cartId) async {
-    String url = "https://servershophanif-production-840f.up.railway.app/remove_from_cart.php";
-    
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/remove_from_cart.php";
+
     try {
       var response = await http.post(
         Uri.parse(url),
         body: {'cart_id': cartId.toString()},
       );
-      
+
       var data = jsonDecode(response.body);
-      
+
       if (data['status'] == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -121,6 +125,87 @@ class _CartPageState extends State<CartPage> {
         ],
       ),
     );
+  }
+
+  // Clear cart after successful payment
+  Future<void> clearCartAfterPayment() async {
+    String url =
+        "https://servershophanif-production-840f.up.railway.app/clear_cart.php";
+    try {
+      await http.post(
+        Uri.parse(url),
+        body: {'user_id': widget.userId.toString()},
+      );
+    } catch (e) {
+      print("Error clearing cart: $e");
+    }
+  }
+
+  // Proses Pembayaran ke Midtrans
+  Future<void> processPayment() async {
+    String paymentUrl =
+        "https://servershophanif-production-840f.up.railway.app/payment_midtrans.php";
+
+    setState(() => isLoading = true);
+
+    try {
+      var response = await http.post(
+        Uri.parse(paymentUrl),
+        body: {'user_id': widget.userId.toString()},
+      );
+
+      print("Payment Response: ${response.body}"); // Debugging
+
+      var data = jsonDecode(response.body);
+
+      if (data['status'] == 'success') {
+        String redirectUrl = data['redirect_url'];
+
+        setState(() => isLoading = false);
+
+        // Buka Halaman Pembayaran
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentPage(paymentUrl: redirectUrl),
+          ),
+        );
+
+        // Cek hasil balik dari PaymentPage
+        if (result == 'success') {
+          // Clear cart on server
+          await clearCartAfterPayment();
+
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Payment Successful! Cart Cleared.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          loadCart(); // Reload (Cart harusnya kosong sekarang)
+        }
+      } else {
+        setState(() => isLoading = false);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? 'Payment Failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => isLoading = false);
+      print("Payment Error: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -177,10 +262,9 @@ class _CartPageState extends State<CartPage> {
                         itemCount: cartItems.length,
                         itemBuilder: (context, index) {
                           final item = cartItems[index];
-                          final price = item['promo'] > 0 
-                              ? item['promo'] 
-                              : item['price'];
-                          
+                          final price =
+                              item['promo'] > 0 ? item['promo'] : item['price'];
+
                           return Card(
                             margin: const EdgeInsets.only(bottom: 10),
                             child: Padding(
@@ -206,11 +290,12 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                   ),
                                   const SizedBox(width: 15),
-                                  
+
                                   // Product Info
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           item['name'],
@@ -231,7 +316,7 @@ class _CartPageState extends State<CartPage> {
                                           ),
                                         ),
                                         const SizedBox(height: 10),
-                                        
+
                                         // Quantity Controls
                                         Row(
                                           children: [
@@ -240,12 +325,15 @@ class _CartPageState extends State<CartPage> {
                                               width: 30,
                                               height: 30,
                                               decoration: BoxDecoration(
-                                                border: Border.all(color: Colors.grey),
-                                                borderRadius: BorderRadius.circular(5),
+                                                border: Border.all(
+                                                    color: Colors.grey),
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
                                               ),
                                               child: IconButton(
                                                 padding: EdgeInsets.zero,
-                                                icon: const Icon(Icons.remove, size: 16),
+                                                icon: const Icon(Icons.remove,
+                                                    size: 16),
                                                 onPressed: () {
                                                   if (item['quantity'] > 1) {
                                                     updateQuantity(
@@ -256,10 +344,12 @@ class _CartPageState extends State<CartPage> {
                                                 },
                                               ),
                                             ),
-                                            
+
                                             // Quantity
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 15),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 15),
                                               child: Text(
                                                 '${item['quantity']}',
                                                 style: const TextStyle(
@@ -268,38 +358,46 @@ class _CartPageState extends State<CartPage> {
                                                 ),
                                               ),
                                             ),
-                                            
+
                                             // Increase button
                                             Container(
                                               width: 30,
                                               height: 30,
                                               decoration: BoxDecoration(
-                                                border: Border.all(color: Colors.grey),
-                                                borderRadius: BorderRadius.circular(5),
+                                                border: Border.all(
+                                                    color: Colors.grey),
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
                                               ),
                                               child: IconButton(
                                                 padding: EdgeInsets.zero,
-                                                icon: const Icon(Icons.add, size: 16),
+                                                icon: const Icon(Icons.add,
+                                                    size: 16),
                                                 onPressed: () {
-                                                  if (item['quantity'] < item['stock']) {
+                                                  if (item['quantity'] <
+                                                      item['stock']) {
                                                     updateQuantity(
                                                       item['cart_id'],
                                                       item['quantity'] + 1,
                                                     );
                                                   } else {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
                                                       const SnackBar(
-                                                        content: Text('Maximum stock reached'),
-                                                        backgroundColor: Colors.orange,
+                                                        content: Text(
+                                                            'Maximum stock reached'),
+                                                        backgroundColor:
+                                                            Colors.orange,
                                                       ),
                                                     );
                                                   }
                                                 },
                                               ),
                                             ),
-                                            
+
                                             const Spacer(),
-                                            
+
                                             // Delete button
                                             IconButton(
                                               icon: const Icon(
@@ -325,7 +423,7 @@ class _CartPageState extends State<CartPage> {
                         },
                       ),
                     ),
-                    
+
                     // Bottom Summary
                     Container(
                       padding: const EdgeInsets.all(20),
@@ -383,14 +481,7 @@ class _CartPageState extends State<CartPage> {
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: () {
-                                // TODO: Proceed to checkout
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Checkout feature coming soon!'),
-                                  ),
-                                );
-                              },
+                              onPressed: processPayment,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 shape: RoundedRectangleBorder(

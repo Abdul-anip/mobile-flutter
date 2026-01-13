@@ -42,6 +42,19 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> searchProductItem(String query) async {
+    String urlSearch =
+        "https://servershophanif-production-840f.up.railway.app/searchproduct.php?search=$query";
+    try {
+      var response = await http.get(Uri.parse(urlSearch));
+      setState(() {
+        allProductList = jsonDecode(response.body);
+      });
+    } catch (exc) {
+      print(exc);
+    }
+  }
+
   Future<void> getCartCount() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     currentUserId = prefs.getInt('user_id');
@@ -65,6 +78,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    searchProduct.dispose(); 
     bannerController.dispose();
     bannerTime?.cancel();
     super.dispose();
@@ -195,36 +209,70 @@ class _HomePageState extends State<HomePage> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            const TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Product',
-                hintStyle: TextStyle(
-                    fontSize: 17,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold),
-                suffixIcon: Align(
-                  widthFactor: 1.0,
-                  heightFactor: 1.0,
-                  child: Icon(
-                    Icons.filter_2_outlined,
-                    color: Colors.green,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: TextField(
+                controller: searchProduct,
+                onChanged: (value) {
+                  if (value.isEmpty) {
+                    getAllProductItem();
+                  } else {
+                    searchProductItem(value);
+                  }
+                },
+                decoration: const InputDecoration(
+                  hintText: 'Search Product',
+                  hintStyle: TextStyle(
+                      fontSize: 17,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                  suffixIcon: Align(
+                    widthFactor: 1.0,
+                    heightFactor: 1.0,
+                    child: Icon(
+                      Icons.filter_2_outlined,
+                      color: Colors.green,
+                    ),
                   ),
-                ),
-                prefixIcon: Align(
-                  widthFactor: 1.0,
-                  heightFactor: 1.0,
-                  child: Icon(
-                    Icons.search,
-                    color: Colors.green,
+                  prefixIcon: Align(
+                    widthFactor: 1.0,
+                    heightFactor: 1.0,
+                    child: Icon(
+                      Icons.search,
+                      color: Colors.green,
+                    ),
                   ),
-                ),
-                filled: true,
-                fillColor: Color.fromARGB(255, 224, 253, 227),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(
-                      width: 3, color: Colors.red, style: BorderStyle.solid),
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(25),
+                  filled: true,
+                  fillColor: Color.fromARGB(255, 224, 253, 227),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        width: 3,
+                        color: Colors.green,
+                        style: BorderStyle
+                            .solid), // Changed red to green for consistency
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(25),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    // Ensure border shows when not focused
+                    borderSide: BorderSide(
+                        width: 1,
+                        color: Colors.green,
+                        style: BorderStyle.solid),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(25),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    // Consistent color on focus
+                    borderSide: BorderSide(
+                        width: 2,
+                        color: Colors.green,
+                        style: BorderStyle.solid),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(25),
+                    ),
                   ),
                 ),
               ),

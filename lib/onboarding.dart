@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hanifstore/homepage.dart';
 import 'package:hanifstore/login_page.dart';
 
 class OnBoardingPage extends StatefulWidget {
@@ -10,173 +9,237 @@ class OnBoardingPage extends StatefulWidget {
 }
 
 class _OnBoardingState extends State<OnBoardingPage> {
-  PageController page = PageController();
-  int indexPage = 0;
-  List<Map<String, String>> onBoardData = [
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
+
+  final List<Map<String, String>> _onBoardData = [
     {
-      "title": "Hanif Ecommerce",
-      "subTitle": "Welcome to Our Online Shop",
+      "title": "Welcome to Hanif Store",
+      "subTitle":
+          "Discover the best online shopping experience with premium quality products.",
       "image":
-          "https://i.pinimg.com/736x/ba/d4/8b/bad48ba35d8e693333e425ad03f2f1ac.jpg"
+          "https://i.pinimg.com/1200x/1d/a7/7a/1da77a25e2147c6b908ccdfe84012bbb.jpg"
     },
     {
-      "title": "Many Products for Men or Women",
+      "title": "Fashion for Everyone",
       "subTitle":
-          "Made from high-quality fabric, it feels soft on the skin and is breathable, making it suitable for daily activities.",
+          "Find the perfect style for men and women. Comfortable, trendy, and affordable.",
       "image":
-          "https://epidemicstreetwear.com/wp-content/uploads/2023/08/Untitled-1_0085_ARMLESS-TAMPAK-DEPAN.webp"
+          "https://d2kchovjbwl1tk.cloudfront.net/vendor/9549/product/1_1766377279790.jpg"
     },
     {
-      "title": "Find Some Electronics",
+      "title": "Latest Electronics",
       "subTitle":
-          "Discover a wide selection of high-quality electronic products designed to make your life easier and more enjoyable.",
+          "Upgrade your life with our wide selection of high-quality gadgets and electronics.",
       "image":
-          "https://assets.bmdstatic.com/web/image?model=product.product&field=image_1024&id=454000&unique=0da8c3f"
+          "https://i.pinimg.com/1200x/c2/f9/86/c2f986f00871251bfabe3bb268cd8c53.jpg"
     },
     {
-      "title": "High-Quality Products You Can Trust",
+      "title": "Quality You Can Trust",
       "subTitle":
-          "Experience the difference with our collection of high-quality products, crafted with premium materials and exceptional attention to detail.",
+          "We ensure every product meets our high standards of quality and durability.",
       "image":
-          "https://d29c1z66frfv6c.cloudfront.net/pub/media/catalog/product/large/27f6136dbfe7e8ed18ab466b669c060a4fce230e_xxl-1.jpg"
+          "https://i.pinimg.com/1200x/06/03/1d/06031d8ac180c0dd393363aa8c49dcd7.jpg"
     },
     {
-      "title": "Affordable Prices You'll Love",
+      "title": "Best Prices & Deals",
       "subTitle":
-          "Shop smart with our range of products at unbeatable low prices! We offer budget-friendly deals without compromising on quality, so you can get what you need without breaking the bank.",
+          "Get the best value for your money. Shop smart without breaking the bank.",
       "image":
-          "https://epidemicstreetwear.com/wp-content/uploads/2025/06/ZIPPER-SPIRIT-SHAKEN-BLACK-DEPAN-2048x2048.webp"
+          "https://i.pinimg.com/736x/e6/e2/79/e6e2791b5e7a44301b24fbaf44ace6c2.jpg"
     }
   ];
 
   @override
-  void initState() {
-    super.initState();
-    page = PageController();
-    page.addListener(() {
-      setState(() {
-        indexPage = page.page?.round() ?? 0;
-      });
-    });
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
-  @override
-  void dispose() {
-    page.dispose();
-    super.dispose();
+  void _nextPage() {
+    if (_currentIndex < _onBoardData.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: <Widget>[
-          Expanded(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Skip Button (Top Right)
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                    );
+                  },
+                  child: const Text(
+                    "Skip",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ),
+              ),
+            ),
+
+            // Page Content
+            Expanded(
               child: PageView.builder(
-                  controller: page,
-                  itemCount: onBoardData.length,
-                  itemBuilder: (context, index) {
-                    return onBoardingLayout(
-                        title: "${onBoardData[index]["title"]}",
-                        subTitle: "${onBoardData[index]["subTitle"]}",
-                        image: "${onBoardData[index]["image"]}");
-                  })),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: <Widget>[
-                indexPage == onBoardData.length - 1
-                    ? TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                  builder: (context) => const LoginPage()));
-                        },
-                        child: const Text(
-                          "Get Started",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      )
-                    : const Text(""),
-                Expanded(
-                  child: Row(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() => _currentIndex = index);
+                },
+                itemCount: _onBoardData.length,
+                itemBuilder: (context, index) {
+                  return OnBoardingContent(
+                    item: _onBoardData[index],
+                  );
+                },
+              ),
+            ),
+
+            // Bottom Section (Indicators & Buttons)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                children: [
+                  // Page Indicators
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      onBoardData.length,
-                      (index) => Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 5),
-                        width: 10,
-                        height: 10,
+                      _onBoardData.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        height: 8,
+                        width: _currentIndex == index ? 24 : 8,
                         decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: indexPage == index
-                                ? Colors.black54
-                                : Colors.blueAccent),
+                          color: _currentIndex == index
+                              ? Colors.green
+                              : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 32),
+
+                  // Next / Get Started Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _nextPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        _currentIndex == _onBoardData.length - 1
+                            ? "Get Started"
+                            : "Next",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OnBoardingContent extends StatelessWidget {
+  final Map<String, String> item;
+
+  const OnBoardingContent({super.key, required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Image Container with decorative elements
+          Expanded(
+            flex: 3,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.network(
+                  item["image"]!,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.image_not_supported,
+                    size: 80,
+                    color: Colors.grey,
+                  ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    if (indexPage == onBoardData.length - 1) {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => const LoginPage()));
-                    } else {
-                      page.nextPage(
-                          duration: const Duration(microseconds: 300),
-                          curve: Curves.easeIn);
-                    }
-                  },
-                  icon: const Icon(Icons.arrow_forward_ios),
+              ),
+            ),
+          ),
+
+          // Text Content
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                Text(
+                  item["title"]!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  item["subTitle"]!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class onBoardingLayout extends StatelessWidget {
-  const onBoardingLayout(
-      {required this.title, required this.subTitle, required this.image});
-  final String title;
-  final String subTitle;
-  final String image;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Image.network(
-          image,
-          height: 350,
-          width: 300,
-          fit: BoxFit.fill,
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-        Text(
-          title,
-          style: const TextStyle(
-              fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            subTitle,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -77,6 +77,12 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setInt('user_id', data['data']['user_id']);
         await prefs.setString('user_name', data['data']['name']);
         await prefs.setString('user_email', data['data']['email']);
+
+        // Save JWT Token
+        if (data['data']['token'] != null) {
+          await prefs.setString('jwt_token', data['data']['token']);
+        }
+
         await prefs.setBool('is_logged_in', true);
 
         if (!mounted) return;
