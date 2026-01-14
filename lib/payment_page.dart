@@ -31,15 +31,14 @@ class _PaymentPageState extends State<PaymentPage> {
           },
           onWebResourceError: (WebResourceError error) {},
           onNavigationRequest: (NavigationRequest request) {
-            // Deteksi Status Pembayaran dari URL
-            // Menambahkan keyword umum yang mungkin muncul saat redirect sukses
+            
             if (request.url.contains('status_code=200') ||
                 request.url.contains('transaction_status=settlement') ||
                 request.url.contains('transaction_status=capture') ||
                 request.url.contains('result_type=success') ||
                 request.url.contains('status_code=201') ||
                 request.url.contains('transaction_status=pending')) {
-              // Pending juga kadang dianggap 'selesai' step pembayaran
+              
               Navigator.pop(context, 'success');
               return NavigationDecision.prevent;
             }
@@ -50,7 +49,7 @@ class _PaymentPageState extends State<PaymentPage> {
       ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
-  // Fungsi untuk menangani tombol Back / Close manual
+  
   Future<bool> _onWillPop() async {
     return (await showDialog(
           context: context,
@@ -60,14 +59,14 @@ class _PaymentPageState extends State<PaymentPage> {
                 'Have you completed the payment? If yes, we will process your order and clear your cart.'),
             actions: <Widget>[
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false), // Stay
+                onPressed: () => Navigator.of(context).pop(false), 
                 child: const Text('No, Stay Here'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true); // Close Dialog
+                  Navigator.of(context).pop(true); 
                   Navigator.of(context)
-                      .pop('success'); // Return success to Cart
+                      .pop('success'); 
                 },
                 child: const Text('Yes, Payment Completed',
                     style: TextStyle(
@@ -75,8 +74,8 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true); // Close Dialog
-                  Navigator.of(context).pop(null); // Return null (Cancel)
+                  Navigator.of(context).pop(true); 
+                  Navigator.of(context).pop(null); 
                 },
                 child: const Text('Cancel Payment',
                     style: TextStyle(color: Colors.red)),
@@ -89,7 +88,6 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Menggunakan WillPopScope (atau PopScope di project terbaru) untuk menangkap back button device
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -98,7 +96,7 @@ class _PaymentPageState extends State<PaymentPage> {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () =>
-                _onWillPop(), // Panggil fungsi konfirmasi yang sama
+                _onWillPop(), 
           ),
         ),
         body: Stack(

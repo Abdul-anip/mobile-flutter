@@ -80,7 +80,8 @@ class _RegisterPageState extends State<RegisterPage> {
       _isLoading = true;
     });
 
-    String url = "https://servershophanif-production-840f.up.railway.app/register.php"; // ✅ URL sudah benar
+    String url = "https://servershophanif-production-840f.up.railway.app/register.php";
+    //"http://10.70.247.208/server_shop_hanif/register.php";
     
     try {
       var response = await http.post(

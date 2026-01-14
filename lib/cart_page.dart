@@ -24,12 +24,13 @@ class _CartPageState extends State<CartPage> {
     loadCart();
   }
 
-  // Load cart dari server
+  // memuat cart dari server
   Future<void> loadCart() async {
     setState(() => isLoading = true);
 
     String url =
         "https://servershophanif-production-840f.up.railway.app/get_cart.php?user_id=${widget.userId}";
+       //"http://10.70.247.208/server_shop_hanif/get_cart.php?user_id=${widget.userId}" 
 
     try {
       var response = await http.get(Uri.parse(url));
@@ -51,10 +52,11 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  // Update quantity item
+  // update quantity item
   Future<void> updateQuantity(int cartId, int newQuantity) async {
     String url =
         "https://servershophanif-production-840f.up.railway.app/update_cart.php";
+        //"http://10.70.247.208/server_shop_hanif/update_cart.php";
 
     try {
       var response = await http.post(
@@ -75,10 +77,11 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  // Hapus item dari cart
+  // menghapus item dari cart
   Future<void> removeItem(int cartId) async {
     String url =
         "https://servershophanif-production-840f.up.railway.app/remove_from_cart.php";
+        //"http://10.70.247.208/server_shop_hanif/remove_from_cart.php";
 
     try {
       var response = await http.post(
@@ -95,14 +98,14 @@ class _CartPageState extends State<CartPage> {
             backgroundColor: Colors.green,
           ),
         );
-        loadCart(); // Reload cart
+        loadCart();
       }
     } catch (e) {
       print('Error removing item: $e');
     }
   }
 
-  // Konfirmasi hapus
+  // konfirmasi hapus
   void confirmRemove(int cartId, String productName) {
     showDialog(
       context: context,
@@ -127,10 +130,11 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  // Clear cart after successful payment
+  // clear cart asesudah sukses payment
   Future<void> clearCartAfterPayment() async {
     String url =
         "https://servershophanif-production-840f.up.railway.app/clear_cart.php";
+        //"http://10.70.247.208/server_shop_hanif/clear_cart.php";
     try {
       await http.post(
         Uri.parse(url),
@@ -145,6 +149,7 @@ class _CartPageState extends State<CartPage> {
   Future<void> processPayment() async {
     String paymentUrl =
         "https://servershophanif-production-840f.up.railway.app/payment_midtrans.php";
+        //"http://10.70.247.208/server_shop_hanif/payment_midtrans.php";
 
     setState(() => isLoading = true);
 
@@ -154,7 +159,7 @@ class _CartPageState extends State<CartPage> {
         body: {'user_id': widget.userId.toString()},
       );
 
-      print("Payment Response: ${response.body}"); // Debugging
+      print("Payment Response: ${response.body}");  
 
       var data = jsonDecode(response.body);
 
@@ -163,7 +168,7 @@ class _CartPageState extends State<CartPage> {
 
         setState(() => isLoading = false);
 
-        // Buka Halaman Pembayaran
+        // buka halaman pembayaran
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -171,9 +176,9 @@ class _CartPageState extends State<CartPage> {
           ),
         );
 
-        // Cek hasil balik dari PaymentPage
+        // cek hasil balik dari PaymentPage
         if (result == 'success') {
-          // Clear cart on server
+          // clear cart on server
           await clearCartAfterPayment();
 
           if (!mounted) return;
@@ -183,7 +188,7 @@ class _CartPageState extends State<CartPage> {
               backgroundColor: Colors.green,
             ),
           );
-          loadCart(); // Reload (Cart harusnya kosong sekarang)
+          loadCart();
         }
       } else {
         setState(() => isLoading = false);
@@ -219,7 +224,7 @@ class _CartPageState extends State<CartPage> {
             IconButton(
               icon: const Icon(Icons.delete_sweep),
               onPressed: () {
-                // TODO: Clear all cart
+               
               },
             ),
         ],
@@ -255,7 +260,7 @@ class _CartPageState extends State<CartPage> {
                 )
               : Column(
                   children: [
-                    // Cart Items List
+                    // cart items list
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.all(10),
@@ -271,7 +276,7 @@ class _CartPageState extends State<CartPage> {
                               padding: const EdgeInsets.all(10),
                               child: Row(
                                 children: [
-                                  // Product Image
+                                  // product image
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.network(
@@ -291,7 +296,7 @@ class _CartPageState extends State<CartPage> {
                                   ),
                                   const SizedBox(width: 15),
 
-                                  // Product Info
+                                  // product info
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -317,10 +322,10 @@ class _CartPageState extends State<CartPage> {
                                         ),
                                         const SizedBox(height: 10),
 
-                                        // Quantity Controls
+                                        // quantity controls
                                         Row(
                                           children: [
-                                            // Decrease button
+                                            // decrease button
                                             Container(
                                               width: 30,
                                               height: 30,
@@ -345,7 +350,7 @@ class _CartPageState extends State<CartPage> {
                                               ),
                                             ),
 
-                                            // Quantity
+                                            // quantity
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
@@ -359,7 +364,7 @@ class _CartPageState extends State<CartPage> {
                                               ),
                                             ),
 
-                                            // Increase button
+                                            // increase button
                                             Container(
                                               width: 30,
                                               height: 30,
@@ -398,7 +403,7 @@ class _CartPageState extends State<CartPage> {
 
                                             const Spacer(),
 
-                                            // Delete button
+                                            // delete button
                                             IconButton(
                                               icon: const Icon(
                                                 Icons.delete_outline,
@@ -424,7 +429,7 @@ class _CartPageState extends State<CartPage> {
                       ),
                     ),
 
-                    // Bottom Summary
+                    // bottom summary
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(

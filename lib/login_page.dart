@@ -57,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
 
     String url =
         "https://servershophanif-production-840f.up.railway.app/login.php";
+    //"http://10.70.247.208/server_shop_hanif/login.php";
 
     try {
       var response = await http.post(
@@ -72,13 +73,13 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (data['status'] == 'success') {
-        // Save user session
+        // save user session
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setInt('user_id', data['data']['user_id']);
         await prefs.setString('user_name', data['data']['name']);
         await prefs.setString('user_email', data['data']['email']);
 
-        // Save JWT Token
+        // save JWT Token
         if (data['data']['token'] != null) {
           await prefs.setString('jwt_token', data['data']['token']);
         }

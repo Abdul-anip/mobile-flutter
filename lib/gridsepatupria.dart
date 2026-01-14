@@ -18,6 +18,7 @@ class _GridSepatuPriaState extends State<GridSepatuPria> {
   Future<void> getAllSepatuPria() async {
     String urlSepatuPria =
         "https://servershophanif-production-840f.up.railway.app/gridsepatupria.php";
+    //"http://10.70.247.208/server_shop_hanif/gridsepatupria.php";
     try {
       var response = await http.get(Uri.parse(urlSepatuPria));
       setState(() {
@@ -187,6 +188,7 @@ class _DetilSepatuPriaState extends State<DetilSepatuPria> {
 
     String url =
         "https://servershophanif-production-840f.up.railway.app/add_to_cart.php";
+    //"http://10.70.247.208/server_shop_hanif/add_to_cart.php";
 
     try {
       var response = await http.post(

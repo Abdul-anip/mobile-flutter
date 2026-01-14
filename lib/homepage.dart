@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> getAllProductItem() async {
     String urlProductItem =
         "https://servershophanif-production-840f.up.railway.app/allproduct.php";
+    //"http://10.70.247.208/server_shop_hanif/allproduct.php";
     try {
       var response = await http.get(Uri.parse(urlProductItem));
       setState(() {
@@ -45,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> searchProductItem(String query) async {
     String urlSearch =
         "https://servershophanif-production-840f.up.railway.app/searchproduct.php?search=$query";
+    //"http://10.70.247.208/server_shop_hanif/searchproduct.php?search=$query";
     try {
       var response = await http.get(Uri.parse(urlSearch));
       setState(() {
@@ -63,6 +65,7 @@ class _HomePageState extends State<HomePage> {
 
     String url =
         "https://servershophanif-production-840f.up.railway.app/get_cart.php?user_id=$currentUserId";
+    //"http://10.70.247.208/server_shop_hanif/get_cart.php?user_id=$currentUserId";
     try {
       var response = await http.get(Uri.parse(url));
       var data = jsonDecode(response.body);
@@ -249,13 +252,13 @@ class _HomePageState extends State<HomePage> {
                         width: 3,
                         color: Colors.green,
                         style: BorderStyle
-                            .solid), // Changed red to green for consistency
+                            .solid), 
                     borderRadius: BorderRadius.all(
                       Radius.circular(25),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    // Ensure border shows when not focused
+                    
                     borderSide: BorderSide(
                         width: 1,
                         color: Colors.green,
@@ -265,7 +268,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    // Consistent color on focus
                     borderSide: BorderSide(
                         width: 2,
                         color: Colors.green,
@@ -569,6 +571,7 @@ class _DetailGenericProductState extends State<DetailGenericProduct> {
 
     String url =
         "https://servershophanif-production-840f.up.railway.app/add_to_cart.php";
+    //"http://10.70.247.208/server_shop_hanif/add_to_cart.php";
 
     try {
       var response = await http.post(
@@ -669,7 +672,7 @@ class _DetailGenericProductState extends State<DetailGenericProduct> {
             },
             icon: const Icon(
               Icons.shopping_cart_outlined,
-              color: Colors.black, // Color black because app bar is white
+              color: Colors.black,
               size: 22,
             ),
           ),

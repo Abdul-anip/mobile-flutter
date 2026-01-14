@@ -21,6 +21,7 @@ class _GridBajuPriaState extends State<GridBajuPria> {
   Future<void> getAllBajuPria() async {
     String urlBajuPria =
         "https://servershophanif-production-840f.up.railway.app/gridbajupria.php";
+      //"http://10.70.247.208/server_shop_hanif/gridbajupria.php";
     try {
       var response = await http.get(Uri.parse(urlBajuPria));
       setState(() {
@@ -160,7 +161,7 @@ class _DetilBajuPriaState extends State<DetilBajuPria> {
   Future<void> addToCart() async {
     setState(() => _isAdding = true);
 
-    // Get User ID from SharedPreferences
+    // get user ID from SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int? userId = prefs.getInt('user_id');
 
@@ -176,6 +177,7 @@ class _DetilBajuPriaState extends State<DetilBajuPria> {
 
     String url =
         "https://servershophanif-production-840f.up.railway.app/add_to_cart.php";
+    //"http://10.70.247.208/server_shop_hanif/add_to_cart.php";
 
     try {
       var response = await http.post(

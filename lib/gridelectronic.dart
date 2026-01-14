@@ -187,6 +187,7 @@ class _DetilElectronicState extends State<DetilElectronic> {
 
     String url =
         "https://servershophanif-production-840f.up.railway.app/add_to_cart.php";
+        //"http://10.70.247.208/server_shop_hanif/add_to_cart.php";
 
     try {
       var response = await http.post(
